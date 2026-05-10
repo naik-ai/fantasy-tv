@@ -1,754 +1,448 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Search, Trophy, Users, Gauge, Clock3 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import './App.css'
 
-const C = {
-  bg: '#0a0f1a',
-  cd: '#111827',
-  bd: '#1e293b',
-  gd: '#f59e0b',
-  gn: '#22c55e',
-  rd: '#ef4444',
-  bl: '#3b82f6',
-  cy: '#06b6d4',
-  pu: '#a855f7',
-  tx: '#f1f5f9',
-  dm: '#94a3b8',
-  mt: '#475569',
-}
-
-const pC = { GK: C.gd, DEF: C.bl, MID: C.gn, FWD: C.rd }
-const lC = [C.gd, C.gn, C.cy, C.pu, C.rd, C.bl]
-
-const MK = ['mins', 'g', 'a', 'sot', 'cs', 'tkl', 'itc', 'clr', 'blk', 'kp', 'drb', 'crs', 'pa85', 'sv', 'fl', 'pm']
-
-const DB = {
-  GK: [
-    {
-      n: 'Ederson M.',
-      t: 'MCI',
-      p: 'GK',
-      gp: 26,
-      sv: 6,
-      g: 0,
-      a: 4,
-      cs: 10,
-      tk: 0,
-      it: 1,
-      cl: 16,
-      dr: 0,
-      s: 54,
-      m: [
-        [90, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 4, 0, 0],
-        [90, 0, 1, 0, 0, 0, 1, 2, 0, 1, 0, 0, 0, 5, 0, 0],
-        [90, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0],
-        [90, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 6, 0, 0],
-      ],
-    },
-    {
-      n: 'Pickford',
-      t: 'EVE',
-      p: 'GK',
-      gp: 38,
-      sv: 5,
-      g: 0,
-      a: 1,
-      cs: 12,
-      tk: 0,
-      it: 1,
-      cl: 52,
-      dr: 0,
-      s: 122,
-      m: [
-        [90, 0, 0, 0, 1, 0, 0, 5, 0, 0, 0, 0, 0, 5, 0, 0],
-        [90, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0],
-        [90, 0, 0, 0, 1, 0, 0, 4, 0, 0, 0, 0, 0, 6, 0, 0],
-        [90, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0],
-      ],
-    },
-  ],
-  DEF: [
-    {
-      n: 'Virgil',
-      t: 'LIV',
-      p: 'DEF',
-      gp: 37,
-      sv: 8,
-      g: 3,
-      a: 1,
-      cs: 14,
-      tk: 20,
-      it: 56,
-      cl: 190,
-      dr: 3,
-      s: 0,
-      m: [
-        [90, 1, 0, 1, 0, 1, 1, 6, 0, 1, 0, 0, 1, 0, 1, 0],
-        [90, 0, 1, 0, 0, 0, 1, 2, 1, 1, 0, 0, 1, 0, 2, 0],
-        [90, 1, 0, 1, 0, 0, 1, 6, 0, 0, 0, 0, 1, 0, 1, 0],
-        [90, 0, 0, 0, 1, 0, 1, 9, 3, 0, 0, 0, 1, 0, 1, 0],
-      ],
-    },
-    {
-      n: 'Gvardiol',
-      t: 'MCI',
-      p: 'DEF',
-      gp: 37,
-      sv: 7,
-      g: 5,
-      a: 0,
-      cs: 13,
-      tk: 39,
-      it: 44,
-      cl: 111,
-      dr: 25,
-      s: 0,
-      m: [
-        [90, 1, 0, 1, 0, 2, 2, 3, 2, 1, 1, 0, 1, 0, 2, 0],
-        [90, 0, 0, 1, 1, 2, 3, 1, 0, 1, 1, 0, 0, 0, 1, 0],
-        [90, 1, 0, 1, 0, 0, 3, 3, 1, 0, 0, 0, 1, 0, 0, 0],
-        [90, 1, 0, 1, 0, 1, 0, 0, 0, 3, 0, 0, 1, 0, 0, 0],
-      ],
-    },
-  ],
-  MID: [
-    {
-      n: 'M.Salah',
-      t: 'LIV',
-      p: 'MID',
-      gp: 38,
-      sv: 15,
-      g: 29,
-      a: 18,
-      cs: 15,
-      tk: 11,
-      it: 9,
-      cl: 5,
-      dr: 58,
-      s: 0,
-      m: [
-        [88, 2, 0, 3, 1, 0, 0, 0, 0, 2, 2, 1, 0, 0, 1, 0],
-        [90, 1, 1, 1, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0],
-        [90, 1, 1, 2, 1, 1, 1, 1, 0, 3, 2, 1, 0, 0, 0, 0],
-        [90, 2, 1, 2, 0, 1, 0, 0, 0, 3, 1, 1, 0, 0, 1, 0],
-      ],
-    },
-    {
-      n: 'Palmer',
-      t: 'CHE',
-      p: 'MID',
-      gp: 37,
-      sv: 12,
-      g: 15,
-      a: 8,
-      cs: 10,
-      tk: 20,
-      it: 11,
-      cl: 19,
-      dr: 51,
-      s: 0,
-      m: [
-        [90, 1, 0, 3, 0, 0, 0, 0, 0, 3, 1, 2, 0, 0, 1, 0],
-        [90, 4, 0, 5, 0, 1, 0, 0, 1, 4, 1, 1, 0, 0, 0, 0],
-        [90, 1, 0, 1, 0, 0, 0, 0, 0, 5, 0, 1, 0, 0, 1, 0],
-        [82, 1, 3, 1, 0, 0, 1, 0, 0, 4, 1, 0, 0, 0, 1, 0],
-      ],
-    },
-  ],
-  FWD: [
-    {
-      n: 'Haaland',
-      t: 'MCI',
-      p: 'FWD',
-      gp: 31,
-      sv: 15,
-      g: 22,
-      a: 3,
-      cs: 10,
-      tk: 6,
-      it: 5,
-      cl: 22,
-      dr: 13,
-      s: 0,
-      m: [
-        [90, 1, 0, 3, 1, 0, 0, 1, 0, 2, 2, 1, 0, 0, 0, 0],
-        [90, 2, 0, 4, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-        [89, 3, 0, 4, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-        [90, 3, 0, 4, 0, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-      ],
-    },
-    {
-      n: 'Isak',
-      t: 'NEW',
-      p: 'FWD',
-      gp: 34,
-      sv: 10,
-      g: 23,
-      a: 6,
-      cs: 12,
-      tk: 5,
-      it: 3,
-      cl: 17,
-      dr: 42,
-      s: 0,
-      m: [
-        [90, 1, 0, 1, 0, 1, 0, 0, 0, 2, 2, 0, 0, 0, 1, 0],
-        [73, 3, 0, 5, 1, 0, 0, 0, 0, 2, 1, 1, 0, 0, 1, 0],
-        [90, 1, 1, 1, 0, 0, 0, 0, 0, 5, 5, 0, 0, 0, 3, 0],
-        [79, 2, 0, 4, 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0],
-      ],
-    },
-  ],
-}
-
-const DEF_PTS = {
-  g: 6,
-  a: 4,
-  sot: 1,
+const POINTS = {
+  goals: 6,
+  assists: 4,
+  shots_on_target: 1,
   cs: 4,
-  tkl: 0.5,
-  itc: 0.5,
-  clr: 0.5,
-  blk: 0.5,
-  kp: 1,
-  drb: 0.5,
-  crs: 0.5,
-  pa85: 2,
-  sv: 0.5,
-  fl: -0.25,
-  pm: -3,
+  tackles_won: 0.5,
+  interceptions: 0.5,
+  clearances: 0.5,
+  blocks: 0.5,
+  chances_created: 1,
+  successful_dribbles: 0.5,
+  accurate_crosses: 0.5,
+  accurate_passes_percent_bonus: 2,
+  saves: 0.5,
+  fouls_committed: -0.25,
+  penalties_missed: -3,
 }
 
-const DEF_TV = { anchor: 7, abs: 0.03, pct: 0.0004 }
+const numberFields = [
+  'gameweek',
+  'minutes_played',
+  'goals',
+  'assists',
+  'shots_on_target',
+  'team_goals_conceded',
+  'tackles_won',
+  'interceptions',
+  'clearances',
+  'blocks',
+  'chances_created',
+  'successful_dribbles',
+  'accurate_crosses',
+  'accurate_passes',
+  'accurate_passes_percent',
+  'saves',
+  'fouls_committed',
+  'penalties_scored',
+  'penalties_missed',
+  'yellow_cards',
+  'red_cards',
+  'recoveries',
+  'duels_won',
+  'aerial_duels_won',
+  'was_fouled',
+  'xg',
+  'xa',
+]
 
-const PT_LABELS = {
-  g: 'Goal',
-  a: 'Assist',
-  sot: 'Shot on Tgt',
-  cs: 'Clean Sheet',
-  tkl: 'Tackle Won',
-  itc: 'Interception',
-  clr: 'Clearance',
-  blk: 'Block',
-  kp: 'Key Pass',
-  drb: 'Dribble',
-  crs: 'Cross',
-  pa85: 'Pass Acc 85%',
-  sv: 'Save',
-  fl: 'Foul',
-  pm: 'Pen Miss',
-}
+function splitCsvLine(line) {
+  const out = []
+  let cur = ''
+  let inQuotes = false
 
-const PT_CATS = {
-  ATK: ['g', 'a', 'sot', 'pm'],
-  DEF_ACT: ['cs', 'tkl', 'itc', 'clr', 'blk'],
-  SKILL: ['kp', 'drb', 'crs', 'pa85'],
-  GK_ACT: ['sv'],
-  DISC: ['fl'],
-}
-
-const CAT_LABELS = {
-  ATK: 'Attacking',
-  DEF_ACT: 'Defending',
-  SKILL: 'Possession & Skill',
-  GK_ACT: 'Goalkeeping',
-  DISC: 'Discipline',
-}
-
-const CAT_COLORS = { ATK: C.gn, DEF_ACT: C.bl, SKILL: C.pu, GK_ACT: C.gd, DISC: C.rd }
-
-const DEF_POS_TOGGLE = {}
-Object.keys(PT_LABELS).forEach((k) => {
-  DEF_POS_TOGGLE[k] = k === 'sv' ? { GK: true, DEF: false, MID: false, FWD: false } : { GK: true, DEF: true, MID: true, FWD: true }
-})
-
-function calcMP(match, pts, pos, posToggle) {
-  let mp = match[0] >= 90 ? 3 : match[0] >= 60 ? 2 : 1
-  MK.forEach((k, i) => {
-    if (i > 0 && pts[k] !== undefined) {
-      const enabled = posToggle?.[k] ? posToggle[k][pos] : true
-      if (enabled) mp += match[i] * pts[k]
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i]
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        cur += '"'
+        i += 1
+      } else {
+        inQuotes = !inQuotes
+      }
+    } else if (ch === ',' && !inQuotes) {
+      out.push(cur)
+      cur = ''
+    } else {
+      cur += ch
     }
-  })
-  return mp
+  }
+  out.push(cur)
+  return out
 }
 
-function simTV(matches, stv, pts, tv, pos, posToggle) {
-  let cur = stv
-  return matches.map((m) => {
-    const mp = calcMP(m, pts, pos, posToggle)
-    const d = (mp - tv.anchor) * tv.abs + (mp - tv.anchor) * tv.pct * stv
-    cur = Math.max(0, cur + d)
-    return { mp: Math.round(mp * 10) / 10, tv: Math.round(cur * 100) / 100 }
+function parseCsv(text) {
+  const lines = text.trim().split(/\r?\n/)
+  const headers = splitCsvLine(lines[0])
+  return lines.slice(1).map((line) => {
+    const cols = splitCsvLine(line)
+    const row = {}
+    headers.forEach((h, i) => {
+      row[h] = cols[i] ?? ''
+    })
+    numberFields.forEach((f) => {
+      row[f] = Number(row[f] || 0)
+    })
+    return row
   })
 }
 
-function exportCSV(all, pts, tv) {
-  const rows = Object.values(all).sort((a, b) => b.finalTV - a.finalTV)
-  const ptsStr = Object.entries(pts)
-    .map(([k, v]) => `${k}=${v}`)
-    .join(', ')
-  const tvStr = `anchor=${tv.anchor}, abs_rate=${tv.abs}, pct_rate=${tv.pct}`
-
-  let csv = '# Football Fantasy TV Report\n'
-  csv += `# Points Config: ${ptsStr}\n`
-  csv += `# TV Formula: ${tvStr}\n`
-  csv += `# WC Equiv (x5): abs_rate=${(tv.abs * 5).toFixed(3)} pct_rate=${(tv.pct * 5).toFixed(4)}\n\n`
-  csv += 'Rank,Player,Position,Team,GP,Goals,Assists,CS,Tackles,Interceptions,Clearances,Dribbles,Saves,Avg MP,Start $M,End $M,Change %,TV Delta $M\n'
-
-  rows.forEach((p, i) => {
-    csv += [
-      i + 1,
-      p.name,
-      p.pos,
-      p.team,
-      p.gp,
-      p.g,
-      p.a,
-      p.cs,
-      p.tk,
-      p.it,
-      p.cl,
-      p.dr,
-      p.s,
-      p.avgMP,
-      p.stv,
-      p.finalTV,
-      p.pctChg,
-      (p.finalTV - p.stv).toFixed(2),
-    ].join(',') + '\n'
-  })
-
-  const blob = new Blob([csv], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'football_fantasy_tv_report.csv'
-  a.click()
-  URL.revokeObjectURL(url)
+function baseMinutePoints(minutes) {
+  if (minutes >= 90) return 3
+  if (minutes >= 60) return 2
+  if (minutes > 0) return 1
+  return 0
 }
 
-function Slider({ label, value, onChange, min, max, step, color }) {
+function calcMatchPoints(r) {
+  const cleanSheet = r.team_goals_conceded === 0 ? 1 : 0
+  const passAccBonus = r.accurate_passes_percent >= 85 ? 1 : 0
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 0' }}>
-      <div style={{ width: 85, fontSize: 9, color: C.dm, whiteSpace: 'nowrap', overflow: 'hidden' }}>{label}</div>
-      <input
-        type='range'
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        style={{ flex: 1, height: 4, accentColor: color || C.gd }}
-      />
-      <input
-        type='number'
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-        step={step}
-        style={{
-          width: 44,
-          background: C.bg,
-          border: `1px solid ${C.bd}`,
-          borderRadius: 4,
-          color: color || C.gd,
-          fontSize: 10,
-          padding: '1px 3px',
-          textAlign: 'center',
-        }}
-      />
-    </div>
+    baseMinutePoints(r.minutes_played) +
+    r.goals * POINTS.goals +
+    r.assists * POINTS.assists +
+    r.shots_on_target * POINTS.shots_on_target +
+    cleanSheet * POINTS.cs +
+    r.tackles_won * POINTS.tackles_won +
+    r.interceptions * POINTS.interceptions +
+    r.clearances * POINTS.clearances +
+    r.blocks * POINTS.blocks +
+    r.chances_created * POINTS.chances_created +
+    r.successful_dribbles * POINTS.successful_dribbles +
+    r.accurate_crosses * POINTS.accurate_crosses +
+    passAccBonus * POINTS.accurate_passes_percent_bonus +
+    r.saves * POINTS.saves +
+    r.fouls_committed * POINTS.fouls_committed +
+    r.penalties_missed * POINTS.penalties_missed
   )
+}
+
+function fmt(v, d = 2) {
+  return Number(v || 0).toFixed(d)
 }
 
 export default function App() {
-  const [pts, setPts] = useState({ ...DEF_PTS })
-  const [tv, setTv] = useState({ ...DEF_TV })
-  const [posF, setPosF] = useState('MID')
-  const [sel, setSel] = useState(['M.Salah', 'Virgil', 'Haaland'])
-  const [panel, setPanel] = useState(false)
-  const [tuneTab, setTuneTab] = useState('pts')
-  const [posToggle, setPosToggle] = useState(JSON.parse(JSON.stringify(DEF_POS_TOGGLE)))
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const updPt = (k, v) => setPts((p) => ({ ...p, [k]: v }))
-  const updTv = (k, v) => setTv((p) => ({ ...p, [k]: v }))
-  const togglePos = (action, pos) =>
-    setPosToggle((p) => {
-      const n = JSON.parse(JSON.stringify(p))
-      n[action][pos] = !n[action][pos]
-      return n
+  const [search, setSearch] = useState('')
+  const [position, setPosition] = useState('ALL')
+  const [team, setTeam] = useState('ALL')
+  const [gameweek, setGameweek] = useState('ALL')
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true)
+        const res = await fetch('/data/pl_2025_26_player_match_stats.csv', { cache: 'no-store' })
+        if (!res.ok) throw new Error('CSV not found')
+        const text = await res.text()
+        setRows(parseCsv(text))
+      } catch (e) {
+        setError(e.message || 'Failed to load CSV')
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
+
+  const teams = useMemo(() => [...new Set(rows.map((r) => r.team))].sort(), [rows])
+  const positions = useMemo(() => [...new Set(rows.map((r) => r.position))].sort(), [rows])
+  const gameweeks = useMemo(() => [...new Set(rows.map((r) => r.gameweek))].sort((a, b) => a - b), [rows])
+
+  const filteredRows = useMemo(() => {
+    return rows.filter((r) => {
+      const q = search.trim().toLowerCase()
+      const matchQ = !q || r.player_name.toLowerCase().includes(q) || r.full_name.toLowerCase().includes(q)
+      const matchPos = position === 'ALL' || r.position === position
+      const matchTeam = team === 'ALL' || r.team === team
+      const matchGw = gameweek === 'ALL' || String(r.gameweek) === gameweek
+      return matchQ && matchPos && matchTeam && matchGw
+    })
+  }, [rows, search, position, team, gameweek])
+
+  const leaderboard = useMemo(() => {
+    const map = new Map()
+
+    filteredRows.forEach((r) => {
+      const id = `${r.player_id}`
+      const pts = calcMatchPoints(r)
+      if (!map.has(id)) {
+        map.set(id, {
+          player_id: r.player_id,
+          player_name: r.player_name,
+          full_name: r.full_name,
+          team: r.team,
+          position: r.position,
+          matches: 0,
+          minutes: 0,
+          goals: 0,
+          assists: 0,
+          xg: 0,
+          xa: 0,
+          totalPoints: 0,
+          maxMatchPoints: -999,
+        })
+      }
+      const p = map.get(id)
+      p.matches += 1
+      p.minutes += r.minutes_played
+      p.goals += r.goals
+      p.assists += r.assists
+      p.xg += r.xg
+      p.xa += r.xa
+      p.totalPoints += pts
+      p.maxMatchPoints = Math.max(p.maxMatchPoints, pts)
     })
 
-  const toggle = useCallback(
-    (n) => setSel((p) => (p.includes(n) ? p.filter((x) => x !== n) : p.length < 6 ? [...p, n] : p)),
-    [],
-  )
+    return [...map.values()]
+      .map((p) => ({
+        ...p,
+        avgPoints: p.matches ? p.totalPoints / p.matches : 0,
+      }))
+      .sort((a, b) => b.totalPoints - a.totalPoints)
+  }, [filteredRows])
 
-  const all = useMemo(() => {
-    const m = {}
-    Object.values(DB)
-      .flat()
-      .forEach((p) => {
-        const trail = simTV(p.m, p.sv, pts, tv, p.p, posToggle)
-        const avgMP = trail.length > 0 ? Math.round((trail.reduce((s, t) => s + t.mp, 0) / trail.length) * 10) / 10 : 0
-        m[p.n] = {
-          ...p,
-          name: p.n,
-          team: p.t,
-          pos: p.p,
-          stv: p.sv,
-          trail,
-          avgMP,
-          finalTV: trail.length > 0 ? trail[trail.length - 1].tv : p.sv,
-          pctChg: trail.length > 0 ? Math.round(((trail[trail.length - 1].tv - p.sv) / p.sv) * 1000) / 10 : 0,
-        }
-      })
-    return m
-  }, [pts, tv, posToggle])
+  const kpis = useMemo(() => {
+    const totalPlayers = leaderboard.length
+    const totalMatches = filteredRows.length
+    const avgPoints = leaderboard.length
+      ? leaderboard.reduce((s, p) => s + p.totalPoints, 0) / leaderboard.length
+      : 0
+    const top = leaderboard[0]
 
-  const sims = sel.map((n) => all[n]).filter(Boolean)
-  const allTVs = sims.flatMap((s) => s.trail.map((t) => t.tv))
-  const maxGW = Math.max(...sims.map((s) => s.trail.length), 1)
-  const maxTV = allTVs.length > 0 ? Math.max(...allTVs) : 16
-  const minTV = allTVs.length > 0 ? Math.min(...allTVs) : 3
-  const range = maxTV - minTV || 1
+    return {
+      totalPlayers,
+      totalMatches,
+      avgPoints,
+      topName: top?.player_name || '- ',
+      topPts: top ? fmt(top.totalPoints, 1) : '0.0',
+    }
+  }, [leaderboard, filteredRows])
 
-  const posList = (DB[posF] || []).map((p) => all[p.n]).filter(Boolean)
+  if (loading) {
+    return <div className='mx-auto max-w-7xl p-4 sm:p-6'>Loading dashboard...</div>
+  }
+
+  if (error) {
+    return <div className='mx-auto max-w-7xl p-4 sm:p-6 text-red-400'>Error: {error}</div>
+  }
 
   return (
-    <div style={{ background: C.bg, color: C.tx, minHeight: '100vh', fontFamily: 'sans-serif' }}>
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          right: panel ? 0 : -300,
-          width: 300,
-          height: '100vh',
-          background: C.cd,
-          borderLeft: `1px solid ${C.bd}`,
-          zIndex: 100,
-          transition: 'right 0.3s',
-          overflowY: 'auto',
-          padding: 12,
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.gd, letterSpacing: 1 }}>TUNE FORMULA</div>
-          <button onClick={() => setPanel(false)} style={{ background: 'none', border: 'none', color: C.dm, fontSize: 18, cursor: 'pointer' }}>
-            ✕
-          </button>
+    <div className='mx-auto max-w-7xl space-y-4 p-4 sm:space-y-6 sm:p-6'>
+      <header className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+        <div>
+          <h1 className='text-2xl font-semibold tracking-tight sm:text-3xl'>Fantasy TV Pro Dashboard</h1>
+          <p className='text-sm text-muted-foreground'>CSV-first analytics for 2025-26, responsive for mobile and web.</p>
         </div>
+        <Badge variant='secondary'>Cloudflare CSV Hosted</Badge>
+      </header>
 
-        <div style={{ display: 'flex', gap: 2, marginBottom: 8 }}>
-          {[
-            { id: 'pts', label: 'Points' },
-            { id: 'pos', label: 'Position Map' },
-            { id: 'tv', label: 'TV Formula' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setTuneTab(tab.id)}
-              style={{
-                flex: 1,
-                background: tuneTab === tab.id ? `${C.gd}22` : C.bg,
-                border: `1px solid ${tuneTab === tab.id ? C.gd : C.bd}`,
-                color: tuneTab === tab.id ? C.gd : C.mt,
-                borderRadius: 6,
-                padding: '5px 2px',
-                fontSize: 8,
-                fontWeight: 700,
-                cursor: 'pointer',
-                letterSpacing: 0.5,
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      <section className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+        <Card>
+          <CardHeader>
+            <CardDescription className='flex items-center gap-2'><Users className='h-4 w-4' /> Players</CardDescription>
+            <CardTitle>{kpis.totalPlayers}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription className='flex items-center gap-2'><Clock3 className='h-4 w-4' /> Match Rows</CardDescription>
+            <CardTitle>{kpis.totalMatches}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription className='flex items-center gap-2'><Gauge className='h-4 w-4' /> Avg Fantasy Pts</CardDescription>
+            <CardTitle>{fmt(kpis.avgPoints, 1)}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardDescription className='flex items-center gap-2'><Trophy className='h-4 w-4' /> Top Player</CardDescription>
+            <CardTitle className='truncate'>{kpis.topName}</CardTitle>
+            <CardDescription>{kpis.topPts} pts</CardDescription>
+          </CardHeader>
+        </Card>
+      </section>
 
-        {tuneTab === 'pts' && (
-          <div>
-            {Object.entries(CAT_LABELS).map(([cat, catLabel]) => (
-              <div key={cat}>
-                <div style={{ fontSize: 8, fontWeight: 700, color: CAT_COLORS[cat], letterSpacing: 1, marginBottom: 2, marginTop: 8 }}>
-                  {catLabel.toUpperCase()}
-                </div>
-                {PT_CATS[cat].map((k) => (
-                  <Slider
-                    key={k}
-                    label={PT_LABELS[k]}
-                    value={pts[k]}
-                    onChange={(v) => updPt(k, v)}
-                    min={k === 'fl' || k === 'pm' ? -6 : 0}
-                    max={k === 'fl' ? 0 : 10}
-                    step={0.25}
-                    color={pts[k] < 0 ? C.rd : CAT_COLORS[cat]}
-                  />
-                ))}
-              </div>
-            ))}
+      <Card>
+        <CardHeader>
+          <CardTitle>Filters</CardTitle>
+        </CardHeader>
+        <CardContent className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+          <div className='relative'>
+            <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground' />
+            <Input className='pl-8' placeholder='Search player' value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
-        )}
 
-        {tuneTab === 'pos' && (
-          <div>
-            <div style={{ fontSize: 8, color: C.dm, marginBottom: 8, lineHeight: 1.5 }}>Toggle which positions earn points for each action.</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '90px repeat(4,1fr)', gap: 2, marginBottom: 4 }}>
-              <div style={{ fontSize: 7, color: C.mt }}>ACTION</div>
-              {['GK', 'DEF', 'MID', 'FWD'].map((pos) => (
-                <div key={pos} style={{ fontSize: 8, fontWeight: 700, color: pC[pos], textAlign: 'center' }}>
-                  {pos}
+          <Select value={position} onValueChange={setPosition}>
+            <SelectTrigger className='w-full'><SelectValue placeholder='Position' /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value='ALL'>All Positions</SelectItem>
+              {positions.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
+          <Select value={team} onValueChange={setTeam}>
+            <SelectTrigger className='w-full'><SelectValue placeholder='Team' /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value='ALL'>All Teams</SelectItem>
+              {teams.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+            </SelectContent>
+          </Select>
+
+          <Select value={gameweek} onValueChange={setGameweek}>
+            <SelectTrigger className='w-full'><SelectValue placeholder='Gameweek' /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value='ALL'>All GWs</SelectItem>
+              {gameweeks.map((gw) => <SelectItem key={gw} value={String(gw)}>GW {gw}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      <Tabs defaultValue='leaderboard'>
+        <TabsList>
+          <TabsTrigger value='leaderboard'>Leaderboard</TabsTrigger>
+          <TabsTrigger value='raw'>Raw Matches</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value='leaderboard'>
+          <Card>
+            <CardHeader>
+              <CardTitle>Player Rankings</CardTitle>
+              <CardDescription>Calculated with configurable-style fantasy points from CSV events.</CardDescription>
+            </CardHeader>
+            <CardContent className='hidden md:block'>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Player</TableHead>
+                    <TableHead>Pos</TableHead>
+                    <TableHead>Team</TableHead>
+                    <TableHead className='text-right'>Matches</TableHead>
+                    <TableHead className='text-right'>Mins</TableHead>
+                    <TableHead className='text-right'>G</TableHead>
+                    <TableHead className='text-right'>A</TableHead>
+                    <TableHead className='text-right'>xG</TableHead>
+                    <TableHead className='text-right'>xA</TableHead>
+                    <TableHead className='text-right'>Pts</TableHead>
+                    <TableHead className='text-right'>Avg</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {leaderboard.slice(0, 100).map((p, i) => (
+                    <TableRow key={p.player_id}>
+                      <TableCell>{i + 1}</TableCell>
+                      <TableCell className='font-medium'>{p.player_name}</TableCell>
+                      <TableCell>{p.position}</TableCell>
+                      <TableCell>{p.team}</TableCell>
+                      <TableCell className='text-right'>{p.matches}</TableCell>
+                      <TableCell className='text-right'>{p.minutes}</TableCell>
+                      <TableCell className='text-right'>{p.goals}</TableCell>
+                      <TableCell className='text-right'>{p.assists}</TableCell>
+                      <TableCell className='text-right'>{fmt(p.xg)}</TableCell>
+                      <TableCell className='text-right'>{fmt(p.xa)}</TableCell>
+                      <TableCell className='text-right font-semibold'>{fmt(p.totalPoints, 1)}</TableCell>
+                      <TableCell className='text-right'>{fmt(p.avgPoints, 1)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+
+            <CardContent className='space-y-3 md:hidden'>
+              {leaderboard.slice(0, 30).map((p, i) => (
+                <div key={p.player_id} className='rounded-lg border p-3'>
+                  <div className='mb-2 flex items-center justify-between'>
+                    <div className='font-medium'>{i + 1}. {p.player_name}</div>
+                    <Badge variant='secondary'>{p.position}</Badge>
+                  </div>
+                  <div className='grid grid-cols-2 gap-2 text-sm text-muted-foreground'>
+                    <div>{p.team} • {p.matches} matches</div>
+                    <div className='text-right font-semibold text-foreground'>{fmt(p.totalPoints, 1)} pts</div>
+                    <div>G {p.goals} • A {p.assists}</div>
+                    <div className='text-right'>Avg {fmt(p.avgPoints, 1)}</div>
+                  </div>
                 </div>
               ))}
-            </div>
-            {Object.entries(CAT_LABELS).map(([cat, catLabel]) => (
-              <div key={cat}>
-                <div style={{ fontSize: 7, fontWeight: 700, color: CAT_COLORS[cat], letterSpacing: 0.5, marginTop: 6, marginBottom: 2 }}>{catLabel}</div>
-                {PT_CATS[cat].map((k) => (
-                  <div key={k} style={{ display: 'grid', gridTemplateColumns: '90px repeat(4,1fr)', gap: 2, marginBottom: 2, alignItems: 'center' }}>
-                    <div style={{ fontSize: 8, color: C.dm }}>
-                      {PT_LABELS[k]} <span style={{ color: C.mt, fontSize: 7 }}>({pts[k] > 0 ? '+' : ''}{pts[k]})</span>
-                    </div>
-                    {['GK', 'DEF', 'MID', 'FWD'].map((pos) => {
-                      const on = posToggle[k]?.[pos] ?? true
-                      return (
-                        <button
-                          key={pos}
-                          onClick={() => togglePos(k, pos)}
-                          style={{
-                            background: on ? `${pC[pos]}22` : C.bg,
-                            border: `1px solid ${on ? `${pC[pos]}88` : C.bd}`,
-                            color: on ? pC[pos] : `${C.mt}55`,
-                            borderRadius: 4,
-                            padding: '3px 0',
-                            fontSize: 8,
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            opacity: on ? 1 : 0.35,
-                          }}
-                        >
-                          {on ? 'ON' : '—'}
-                        </button>
-                      )
-                    })}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value='raw'>
+          <Card>
+            <CardHeader>
+              <CardTitle>Raw Match Rows</CardTitle>
+              <CardDescription>Top 100 filtered rows with per-match fantasy points.</CardDescription>
+            </CardHeader>
+            <CardContent className='hidden md:block'>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>GW</TableHead>
+                    <TableHead>Player</TableHead>
+                    <TableHead>Pos</TableHead>
+                    <TableHead>Team</TableHead>
+                    <TableHead className='text-right'>Mins</TableHead>
+                    <TableHead className='text-right'>G</TableHead>
+                    <TableHead className='text-right'>A</TableHead>
+                    <TableHead className='text-right'>SoT</TableHead>
+                    <TableHead className='text-right'>xG</TableHead>
+                    <TableHead className='text-right'>xA</TableHead>
+                    <TableHead className='text-right'>Pts</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredRows.slice(0, 100).map((r, i) => (
+                    <TableRow key={`${r.player_id}-${r.match_id}-${i}`}>
+                      <TableCell>{r.gameweek}</TableCell>
+                      <TableCell className='font-medium'>{r.player_name}</TableCell>
+                      <TableCell>{r.position}</TableCell>
+                      <TableCell>{r.team}</TableCell>
+                      <TableCell className='text-right'>{r.minutes_played}</TableCell>
+                      <TableCell className='text-right'>{r.goals}</TableCell>
+                      <TableCell className='text-right'>{r.assists}</TableCell>
+                      <TableCell className='text-right'>{r.shots_on_target}</TableCell>
+                      <TableCell className='text-right'>{fmt(r.xg)}</TableCell>
+                      <TableCell className='text-right'>{fmt(r.xa)}</TableCell>
+                      <TableCell className='text-right font-semibold'>{fmt(calcMatchPoints(r), 1)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+
+            <CardContent className='space-y-2 md:hidden'>
+              {filteredRows.slice(0, 25).map((r, i) => (
+                <div key={`${r.player_id}-${r.match_id}-${i}`} className='rounded-lg border p-3 text-sm'>
+                  <div className='flex items-center justify-between'>
+                    <div className='font-medium'>{r.player_name}</div>
+                    <div className='font-semibold'>{fmt(calcMatchPoints(r), 1)} pts</div>
                   </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {tuneTab === 'tv' && (
-          <div>
-            <div style={{ fontSize: 8, color: C.dm, marginBottom: 8 }}>Controls how Match Points convert to $ value changes.</div>
-            <Slider label='Anchor (MP)' value={tv.anchor} onChange={(v) => updTv('anchor', v)} min={0} max={15} step={0.5} color={C.cy} />
-            <Slider label='Abs Rate ($/MP)' value={tv.abs} onChange={(v) => updTv('abs', v)} min={0} max={0.5} step={0.005} color={C.cy} />
-            <Slider label='Pct Rate' value={tv.pct} onChange={(v) => updTv('pct', v)} min={0} max={0.005} step={0.0001} color={C.cy} />
-          </div>
-        )}
-
-        <div style={{ marginTop: 12, display: 'flex', gap: 6 }}>
-          <button
-            onClick={() => {
-              setPts({ ...DEF_PTS })
-              setTv({ ...DEF_TV })
-              setPosToggle(JSON.parse(JSON.stringify(DEF_POS_TOGGLE)))
-            }}
-            style={{
-              flex: 1,
-              background: `${C.rd}22`,
-              border: `1px solid ${C.rd}55`,
-              color: C.rd,
-              borderRadius: 6,
-              padding: '6px',
-              fontSize: 9,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            RESET ALL
-          </button>
-          <button
-            onClick={() => exportCSV(all, pts, tv)}
-            style={{
-              flex: 1,
-              background: `${C.gn}22`,
-              border: `1px solid ${C.gn}55`,
-              color: C.gn,
-              borderRadius: 6,
-              padding: '6px',
-              fontSize: 9,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            EXPORT CSV
-          </button>
-        </div>
-      </div>
-
-      <div style={{ padding: 16, maxWidth: 800, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-          <div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: C.gd, letterSpacing: 2 }}>FOOTBALL FANTASY TV</div>
-            <div style={{ fontSize: 9, color: C.dm }}>Real PL 2024-25 · Adjustable points + formula</div>
-          </div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <button
-              onClick={() => exportCSV(all, pts, tv)}
-              style={{
-                background: `${C.gn}22`,
-                border: `1px solid ${C.gn}`,
-                color: C.gn,
-                borderRadius: 8,
-                padding: '8px 12px',
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: 'pointer',
-                letterSpacing: 1,
-              }}
-            >
-              EXPORT
-            </button>
-            <button
-              onClick={() => setPanel(true)}
-              style={{
-                background: `${C.gd}22`,
-                border: `1px solid ${C.gd}`,
-                color: C.gd,
-                borderRadius: 8,
-                padding: '8px 14px',
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: 'pointer',
-                letterSpacing: 1,
-              }}
-            >
-              TUNE
-            </button>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
-          {['GK', 'DEF', 'MID', 'FWD'].map((pos) => (
-            <button
-              key={pos}
-              onClick={() => setPosF(pos)}
-              style={{
-                flex: 1,
-                background: posF === pos ? `${pC[pos]}22` : C.cd,
-                border: `1px solid ${posF === pos ? pC[pos] : C.bd}`,
-                color: posF === pos ? pC[pos] : C.dm,
-                borderRadius: 8,
-                padding: '7px',
-                fontSize: 14,
-                fontWeight: 700,
-                letterSpacing: 1,
-                cursor: 'pointer',
-              }}
-            >
-              {pos}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ background: C.cd, border: `1px solid ${C.bd}`, borderRadius: 10, overflow: 'auto', marginBottom: 10 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11, minWidth: 480 }}>
-            <thead>
-              <tr>
-                {['Player', 'GP', 'G', 'A', 'CS', 'Tkl', 'Int', 'Clr', 'Drb', 'AvgMP', '$Start', '$End', '%', ''].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      padding: '5px 3px',
-                      color: C.mt,
-                      fontSize: 8,
-                      fontWeight: 600,
-                      borderBottom: `1px solid ${C.bd}`,
-                      textAlign: h === 'Player' ? 'left' : 'center',
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {posList.map((p) => {
-                const isSel = sel.includes(p.name)
-                return (
-                  <tr key={p.name} style={{ background: isSel ? `${pC[posF]}10` : 'transparent' }}>
-                    <td style={{ padding: '4px', color: isSel ? pC[posF] : C.tx, fontWeight: 500 }}>
-                      {p.name} <span style={{ color: C.mt, fontSize: 8 }}>{p.team}</span>
-                    </td>
-                    <td style={{ padding: '3px', textAlign: 'center', color: C.dm }}>{p.gp}</td>
-                    <td style={{ padding: '3px', textAlign: 'center', color: p.g > 0 ? C.gn : C.mt }}>{p.g}</td>
-                    <td style={{ padding: '3px', textAlign: 'center', color: p.a > 0 ? C.cy : C.mt }}>{p.a}</td>
-                    <td style={{ padding: '3px', textAlign: 'center', color: p.cs > 0 ? C.pu : C.mt }}>{p.cs}</td>
-                    <td style={{ padding: '3px', textAlign: 'center', color: p.tk > 0 ? C.bl : C.mt }}>{p.tk}</td>
-                    <td style={{ padding: '3px', textAlign: 'center', color: p.it > 0 ? C.bl : C.mt }}>{p.it}</td>
-                    <td style={{ padding: '3px', textAlign: 'center', color: p.cl > 0 ? C.bl : C.mt }}>{p.cl}</td>
-                    <td style={{ padding: '3px', textAlign: 'center', color: p.dr > 0 ? C.pu : C.mt }}>{p.dr}</td>
-                    <td style={{ padding: '3px', textAlign: 'center', fontWeight: 700, color: C.gd }}>{p.avgMP}</td>
-                    <td style={{ padding: '3px', textAlign: 'center', color: C.dm }}>${p.stv}M</td>
-                    <td style={{ padding: '3px', textAlign: 'center', fontWeight: 700, color: p.pctChg >= 0 ? C.gn : C.rd }}>${p.finalTV}M</td>
-                    <td style={{ padding: '3px', textAlign: 'center', fontSize: 9, color: p.pctChg >= 0 ? C.gn : C.rd }}>
-                      {p.pctChg > 0 ? '+' : ''}
-                      {p.pctChg}%
-                    </td>
-                    <td style={{ padding: '3px', textAlign: 'center' }}>
-                      <button
-                        onClick={() => toggle(p.name)}
-                        style={{
-                          background: isSel ? `${C.rd}22` : `${C.gn}22`,
-                          border: `1px solid ${isSel ? `${C.rd}55` : `${C.gn}55`}`,
-                          color: isSel ? C.rd : C.gn,
-                          borderRadius: 6,
-                          padding: '2px 8px',
-                          fontSize: 9,
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {isSel ? 'DROP' : 'ADD'}
-                      </button>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        {sims.length > 0 && (
-          <div style={{ background: C.cd, border: `1px solid ${C.bd}`, borderRadius: 12, padding: 12, marginBottom: 10 }}>
-            <div style={{ fontSize: 10, color: C.mt, fontWeight: 600, letterSpacing: 1, marginBottom: 6 }}>TV PROGRESSION</div>
-            <svg viewBox='0 0 700 200' style={{ width: '100%', height: 'auto' }}>
-              {[0, 0.25, 0.5, 0.75, 1].map((f) => {
-                const y = 185 - f * 170
-                const val = (minTV + f * range).toFixed(1)
-                return (
-                  <g key={f}>
-                    <line x1={40} y1={y} x2={690} y2={y} stroke={C.bd} strokeWidth={0.5} />
-                    <text x={36} y={y + 3} fill={C.mt} fontSize={7} textAnchor='end'>
-                      ${val}
-                    </text>
-                  </g>
-                )
-              })}
-              {sims.map((s, si) => {
-                const pts2 = s.trail
-                  .map((t, i) => {
-                    const x = 40 + (i / Math.max(maxGW - 1, 1)) * 650
-                    const y = 185 - ((t.tv - minTV) / range) * 170
-                    return `${x},${y}`
-                  })
-                  .join(' ')
-                return <polyline key={s.name} points={pts2} fill='none' stroke={lC[si]} strokeWidth={1.5} opacity={0.85} />
-              })}
-            </svg>
-          </div>
-        )}
-      </div>
+                  <div className='text-muted-foreground'>GW {r.gameweek} • {r.team} • {r.position}</div>
+                  <div className='mt-1 text-muted-foreground'>Mins {r.minutes_played} | G {r.goals} A {r.assists} | xG {fmt(r.xg)} xA {fmt(r.xa)}</div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
