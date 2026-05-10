@@ -1,0 +1,22 @@
+{
+  "name": "Fantasy TV Pro Dashboard",
+  "short_name": "Fantasy TV",
+  "description": "CSV-first fantasy formula tuning dashboard",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icons.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
