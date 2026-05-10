@@ -1,16 +1,86 @@
-# React + Vite
+# Fantasy TV Pro Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+CSV-native fantasy analytics dashboard for **mobile, desktop, and PWA**.
 
-Currently, two official plugins are available:
+Live: https://fantasy-tv.pages.dev  
+Repo: https://github.com/naik-ai/fantasy-tv
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Goal
+Build a formula-calibration cockpit where fantasy scoring can be tuned and validated against real 2025-26 data.
 
-## React Compiler
+## Data Source
+- Current season CSV (served as static asset):
+  - `public/data/pl_2025_26_player_match_stats.csv`
+- Loaded in app from:
+  - `/data/pl_2025_26_player_match_stats.csv`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Current Features
+- CSV parsing + typed numeric normalization
+- Leaderboard view (aggregated player points)
+- Raw match rows view (per-match points)
+- Filters:
+  - player search
+  - team
+  - position
+  - gameweek
+- Responsive mobile + desktop layout
+- Cloudflare Pages deployment
 
-## Expanding the ESLint configuration
+## Scoring Logic (Current)
+Implemented in `src/App.jsx` with weighted event scoring and minute-based base points.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Includes:
+- goals, assists, shots on target
+- clean sheet bonus
+- defensive actions
+- chance creation/dribbles/crosses
+- pass accuracy threshold bonus
+- saves
+- penalties/fouls negative adjustments
+
+## Product Requirements
+Detailed spec is documented in:
+- `PRODUCT_REQUIREMENTS.md`
+
+That file includes:
+- formula tuning sidebar requirements
+- baseline vs candidate comparison requirements
+- graph requirements
+- PWA skew/overflow fix requirements
+- acceptance criteria and phased delivery
+
+## Local Development
+```bash
+npm install
+npm run dev
+```
+
+Build:
+```bash
+npm run build
+npm run preview
+```
+
+## Deploy (Cloudflare Pages)
+From project root (`src/fantasy-tv`):
+```bash
+npx wrangler pages deploy dist --project-name fantasy-tv
+```
+
+## Project Structure
+```text
+src/
+  App.jsx                 # Dashboard + scoring + filtering
+  components/ui/          # shadcn-style UI components
+  lib/utils.js
+public/
+  data/pl_2025_26_player_match_stats.csv
+PRODUCT_REQUIREMENTS.md   # Detailed goals and roadmap
+```
+
+## Next Build Focus
+1. PWA layout parity fixes (standalone/mobile skew)
+2. Tuning sidebar with live parameter controls
+3. Formula comparison mode (baseline vs candidate)
+4. Graph suite for ranking delta and trend analysis
+5. Export + explainability breakdown for final formula decisions
