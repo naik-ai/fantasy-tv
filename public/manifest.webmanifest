@@ -4,8 +4,8 @@
   "description": "CSV-first fantasy formula tuning dashboard",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0f172a",
+  "background_color": "#0F0F10",
+  "theme_color": "#0F0F10",
   "icons": [
     {
       "src": "/favicon.svg",

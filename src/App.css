@@ -1,10 +1,6 @@
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-html,
-body,
-#root {
+html, body, #root {
   margin: 0;
   padding: 0;
   min-height: 100%;
@@ -12,10 +8,7 @@ body,
   overflow-x: hidden;
 }
 
-button,
-input {
-  font: inherit;
-}
+button, input { font: inherit; }
 
 :root {
   --safe-top: env(safe-area-inset-top, 0px);
@@ -24,83 +17,32 @@ input {
   --safe-left: env(safe-area-inset-left, 0px);
 }
 
-.dashboard-shell {
-  position: relative;
-  min-height: 100dvh;
-  width: 100%;
-  overflow-x: hidden;
-  padding-left: var(--safe-left);
-  padding-right: var(--safe-right);
+/* Safe-area helpers for the responsive shell */
+.pt-safe { padding-top: var(--safe-top); }
+.pb-safe { padding-bottom: var(--safe-bottom); }
+.pl-safe { padding-left: var(--safe-left); }
+.pr-safe { padding-right: var(--safe-right); }
+
+/* Bottom tab bar must clear the iOS home indicator */
+.bottom-tabs {
+  padding-bottom: max(0.5rem, var(--safe-bottom));
 }
 
-.dashboard-main {
-  min-height: 100dvh;
-  padding-top: calc(0.75rem + var(--safe-top));
-  padding-bottom: calc(0.75rem + var(--safe-bottom));
+/* Header sticky baseline; inner ring drawn by Tailwind */
+.app-header {
+  padding-top: max(0.5rem, var(--safe-top));
 }
 
-.tuning-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 40;
-  height: 100dvh;
-  width: min(360px, 90vw);
-  background: var(--card);
-  border-right: 1px solid color-mix(in oklab, var(--border) 85%, transparent);
-  transform: translateX(-102%);
-  transition: transform 180ms ease;
-  padding: calc(1rem + var(--safe-top)) 0.9rem calc(1rem + var(--safe-bottom));
-}
+/* Drawer + overlay use the global stacking context */
+.tuning-overlay { z-index: 40; }
+.tuning-drawer  { z-index: 50; }
 
-.tuning-sidebar.open {
-  transform: translateX(0);
-}
-
-.formula-scroll {
-  overflow: auto;
-  max-height: calc(100dvh - 260px - var(--safe-top) - var(--safe-bottom));
-  padding-right: 0.25rem;
-}
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 35;
-  background: rgba(0, 0, 0, 0.4);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 180ms ease;
-}
-
-.tuning-sidebar.open + .overlay {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.sidebar-fab {
-  position: fixed;
-  right: max(12px, var(--safe-right));
-  bottom: calc(16px + var(--safe-bottom));
-  z-index: 30;
-}
-
-.pb-safe {
-  padding-bottom: var(--safe-bottom);
-}
-
-@media (min-width: 1024px) {
-  .tuning-sidebar {
-    transform: translateX(0);
-    width: 330px;
-  }
-
-  .overlay,
-  .sidebar-fab {
-    display: none;
-  }
-
-  .dashboard-main {
-    margin-left: 330px;
-  }
-}
+/* Recharts override — make grid + axis lines pick up the theme line color */
+.recharts-cartesian-grid line { stroke: var(--line); }
+.recharts-cartesian-axis-line { stroke: var(--line); }
+.recharts-cartesian-axis-tick-line { stroke: var(--line); }
+.recharts-text { fill: var(--dim); }
+.recharts-surface { outline: none; }
+.recharts-layer { outline: none; }
+.recharts-dot[stroke='#fff'],
+.recharts-sector[stroke='#fff'] { stroke: transparent; }
